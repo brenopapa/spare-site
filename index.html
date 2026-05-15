@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Spare — block focus time before your calendar fills up. Free Chrome extension for Google Calendar.">
+  <title>Spare — Protect your focus time</title>
+  <style>
+    /* ── Tokens ── */
+    :root {
+      --clr-primary:          #059669;
+      --clr-primary-hover:    #047857;
+      --clr-primary-bg:       #ecfdf5;
+      --clr-primary-border:   #d1fae5;
+      --clr-border:           #d8ede2;
+      --clr-border-hover:     #c3e0cf;
+      --clr-surface:          #fff;
+      --clr-bg:               #f5fdf8;
+      --clr-text:             #1c2e26;
+      --clr-text-secondary:   #4a6b58;
+      --clr-text-muted:       #8aaa96;
+      --clr-text-disabled:    #bdd6c9;
+      --radius-sm:            8px;
+      --radius-md:            12px;
+      --radius-lg:            16px;
+      --ease:                 0.12s;
+      --clr-primary-dim:      #6ee7b7;
+      --clr-primary-text-dim: #34d399;
+      --clr-success:          #059669;
+      --clr-error:            #e11d48;
+      --clr-error-bg:         #fff1f2;
+      --clr-error-border:     #fecdd3;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .site-wrapper {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    /* ── Utilities ── */
+    .hidden { display: none !important; }
+
+    .card {
+      background: var(--clr-surface);
+      border: 1.5px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+    }
+
+    .label-caps {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--clr-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .page { animation: fadeSlideUp 0.3s ease both; }
+
+    /* ── Header ── */
+    .site-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--clr-border);
+    }
+
+    .site-logo { font-size: 32px; line-height: 1; }
+
+    .site-header-text h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--clr-text);
+    }
+
+    .site-tagline {
+      font-size: 12px;
+      color: var(--clr-text-muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* ── Home ── */
+    .hero-card {
+      padding: 32px 28px;
+      margin-bottom: 24px;
+    }
+
+    .hero-eyebrow {
+      margin-bottom: 12px;
+    }
+
+    .hero-headline {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--clr-text);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .hero-body {
+      font-size: 15px;
+      color: var(--clr-text-secondary);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      padding: 13px 28px;
+      background: var(--clr-primary);
+      color: var(--clr-surface);
+      border: none;
+      border-radius: var(--radius-lg);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background var(--ease), transform var(--ease);
+    }
+
+    .btn-primary:hover {
+      background: var(--clr-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:focus-visible {
+      outline: 3px solid var(--clr-primary);
+      outline-offset: 3px;
+    }
+
+    /* ── Site footer ── */
+    .site-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 20px;
+      border-top: 1px solid var(--clr-border);
+      font-size: 12px;
+      color: var(--clr-text-muted);
+    }
+
+    .site-footer a {
+      color: var(--clr-text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--ease);
+    }
+
+    .site-footer a:hover { color: var(--clr-primary); }
+
+    .site-footer a:focus-visible { color: var(--clr-primary); }
+
+    /* ── Privacy ── */
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 24px;
+      text-decoration: none;
+      transition: color var(--ease);
+    }
+
+    .btn-back:hover { color: var(--clr-primary); }
+
+    .btn-back:focus-visible {
+      outline: 2px solid var(--clr-primary);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    .policy-card {
+      padding: 28px 28px 32px;
+    }
+
+    .policy-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--clr-text);
+      margin-bottom: 4px;
+    }
+
+    .policy-updated {
+      font-size: 12px;
+      color: var(--clr-text-muted);
+      margin-bottom: 28px;
+    }
+
+    .policy-section {
+      margin-bottom: 24px;
+    }
+
+    .policy-section:last-child { margin-bottom: 0; }
+
+    .policy-section h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--clr-text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .policy-section p,
+    .policy-section ul {
+      font-size: 14px;
+      color: var(--clr-text-secondary);
+      line-height: 1.7;
+    }
+
+    .policy-section ul {
+      padding-left: 18px;
+    }
+
+    .policy-section ul li { margin-bottom: 4px; }
+
+    .policy-section a {
+      color: var(--clr-primary);
+      text-decoration: none;
+    }
+
+    .policy-section a:hover { text-decoration: underline; }
+
+    .policy-section a:focus-visible {
+      outline: 2px solid var(--clr-primary);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .policy-card code {
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 12px;
+      background: var(--clr-primary-bg);
+      color: var(--clr-primary);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--clr-primary-border);
+    }
+  </style>
+</head>
+<body>
+  <div class="site-wrapper">
+    <div id="home" class="page hidden">
+      <!-- header injected by JS -->
+
+      <main>
+        <div class="hero-card card">
+          <p class="label-caps hero-eyebrow">🍃 Chrome Extension</p>
+          <h2 class="hero-headline">Block focus time before your calendar fills up</h2>
+          <p class="hero-body">
+            Spare connects to your Google Calendar, finds the free gaps between meetings
+            within your working hours, and lets you block them as protected focus time —
+            in one click.
+          </p>
+          <a href="https://chromewebstore.google.com/detail/spare/YOUR_EXTENSION_ID" class="btn-primary" target="_blank" rel="noopener noreferrer">
+            Add to Chrome — it's free
+          </a>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <span>© 2026 Spare</span>
+        <a href="#privacy">Privacy Policy</a>
+      </footer>
+    </div>
+    <div id="privacy" class="page hidden">
+      <!-- header injected by JS -->
+
+      <main>
+        <a href="#home" class="btn-back">← Back to home</a>
+
+        <div class="policy-card card">
+          <h2 class="policy-title">Privacy Policy</h2>
+          <p class="policy-updated">Last updated: May 15, 2026</p>
+
+          <div class="policy-section">
+            <h3>What data we access</h3>
+            <p>
+              Spare requests read-only access to your Google Calendar via OAuth 2.0
+              (<code>https://www.googleapis.com/auth/calendar.readonly</code>). This lets the
+              extension read your calendar events to find free time gaps. Your OAuth token
+              is stored locally in <code>chrome.storage.local</code> on your device only.
+            </p>
+          </div>
+
+          <div class="policy-section">
+            <h3>How we use it</h3>
+            <p>
+              Calendar data is used solely to compute free time gaps between your meetings
+              within your configured working hours. All processing happens locally inside
+              the Chrome extension — no calendar data is ever sent to any Spare server.
+            </p>
+          </div>
+
+          <div class="policy-section">
+            <h3>What we store</h3>
+            <p>The following is stored in <code>chrome.storage.local</code> on your device only:</p>
+            <ul>
+              <li>OAuth access token, refresh token, and expiry (to keep you signed in)</li>
+              <li>Your email address and avatar URL (displayed in the extension UI)</li>
+              <li>Your configuration (working hours, focus window size)</li>
+              <li>Focus stats (locally computed counts of blocked focus sessions)</li>
+            </ul>
+            <p>None of this information leaves your device.</p>
+          </div>
+
+          <div class="policy-section">
+            <h3>What we don't do</h3>
+            <ul>
+              <li>No server-side storage of any user data</li>
+              <li>No analytics, telemetry, or usage tracking</li>
+              <li>No selling, sharing, or transmitting your data to third parties</li>
+              <li>No access to email, Drive, or any Google service other than Calendar</li>
+            </ul>
+          </div>
+
+          <div class="policy-section">
+            <h3>Third parties</h3>
+            <p>
+              Spare uses the Google Calendar API, operated by Google LLC. Your use of Google
+              Calendar is governed by
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a>.
+              No other third-party services are used.
+            </p>
+          </div>
+
+          <div class="policy-section">
+            <h3>Contact</h3>
+            <p>
+              Questions about this policy?
+              Email <a href="mailto:brenopapa2005@gmail.com">brenopapa2005@gmail.com</a>.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <template id="header-tpl">
+    <header class="site-header" aria-label="Spare">
+      <span class="site-logo" aria-hidden="true">🍃</span>
+      <div class="site-header-text">
+        <h1>Spare</h1>
+        <p class="site-tagline">Protect your focus time</p>
+      </div>
+    </header>
+  </template>
+
+  <script>
+    const headerTpl = document.getElementById('header-tpl');
+
+    function injectHeader(pageEl) {
+      if (pageEl.querySelector('.site-header')) return;
+      pageEl.prepend(headerTpl.content.cloneNode(true));
+    }
+
+    function route() {
+      const hash = location.hash.replace('#', '') || 'home';
+      const target = hash === 'home' || hash === 'privacy' ? hash : 'home';
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      const el = document.getElementById(target);
+      if (el) {
+        injectHeader(el);
+        el.classList.remove('hidden');
+        document.title = target === 'privacy'
+          ? 'Privacy Policy — Spare'
+          : 'Spare — Protect your focus time';
+        el.style.animation = 'none';
+        void el.offsetHeight;
+        el.style.animation = '';
+      }
+    }
+    window.addEventListener('hashchange', route);
+    document.addEventListener('DOMContentLoaded', route);
+  </script>
+</body>
+</html>
